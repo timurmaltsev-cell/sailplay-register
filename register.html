@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Регистрация в программе лояльности</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1a2236;
+      --muted: #6b7691;
+      --line: #e3e8f1;
+      --primary: #2f6bff;
+      --primary-hover: #1f57e0;
+      --primary-soft: #eaf0ff;
+      --danger: #e0455a;
+      --success: #18a96a;
+      --radius: 14px;
+      --shadow: 0 10px 40px rgba(31, 41, 92, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 90% -10%, #e9efff 0%, transparent 60%),
+        radial-gradient(800px 500px at -10% 110%, #eafffa 0%, transparent 60%),
+        var(--bg);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: .02em;
+    }
+
+    .brand-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #6aa1ff);
+      box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 6px 0;
+      letter-spacing: -.01em;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 22px 0;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .input {
+      width: 100%;
+      height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 15px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .input::placeholder { color: #b6bdcc; }
+
+    .input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+
+    .input.invalid {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 4px rgba(224, 69, 90, .12);
+    }
+
+    .err {
+      display: none;
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    .field.invalid .err { display: block; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .check {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 8px 0 18px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .check input {
+      margin-top: 3px;
+      accent-color: var(--primary);
+      width: 16px; height: 16px;
+    }
+
+    .check a { color: var(--primary); text-decoration: none; }
+    .check a:hover { text-decoration: underline; }
+
+    .btn {
+      width: 100%;
+      height: 48px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, transform .05s;
+      font-family: inherit;
+    }
+    .btn:hover { background: var(--primary-hover); }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { background: #b9c4e0; cursor: not-allowed; }
+
+    .alert {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .alert.show { display: block; }
+    .alert.success {
+      background: #e8f8f0;
+      color: #0f7a4d;
+      border: 1px solid #b9e9d0;
+    }
+    .alert.error {
+      background: #fdecef;
+      color: #a02233;
+      border: 1px solid #f6c6cf;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 16px;
+    }
+
+    /* spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: -3px;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Программа лояльности</span>
+    </div>
+
+    <div class="card">
+      <h1>Регистрация</h1>
+      <p class="sub">Заполните анкету, чтобы получать бонусы и персональные предложения.</p>
+
+      <form id="regForm" novalidate>
+        <div class="row">
+          <div class="field" data-field="first_name">
+            <label for="first_name">Имя</label>
+            <input class="input" id="first_name" name="first_name" type="text" autocomplete="given-name" placeholder="Иван" required>
+            <div class="err">Введите имя</div>
+          </div>
+          <div class="field" data-field="last_name">
+            <label for="last_name">Фамилия</label>
+            <input class="input" id="last_name" name="last_name" type="text" autocomplete="family-name" placeholder="Иванов" required>
+            <div class="err">Введите фамилию</div>
+          </div>
+        </div>
+
+        <div class="field" data-field="user_phone">
+          <label for="user_phone">Телефон</label>
+          <input class="input" id="user_phone" name="user_phone" type="tel" autocomplete="tel" placeholder="+7 999 999-99-99" required inputmode="tel">
+          <div class="err">Введите корректный телефон</div>
+        </div>
+
+        <div class="field" data-field="email">
+          <label for="email">Email</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required>
+          <div class="err">Введите корректный email</div>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" id="consent" required>
+          <span>Я согласен(а) на <a href="#" target="_blank" rel="noopener">обработку персональных данных</a> и получение информационных сообщений.</span>
+        </label>
+
+        <button class="btn" id="submitBtn" type="submit">Зарегистрироваться</button>
+
+        <div class="alert success" id="alertSuccess"></div>
+        <div class="alert error" id="alertError"></div>
+      </form>
+    </div>
+
+    <div class="footer">Powered by SailPlay</div>
+  </div>
+
+  <script>
+    // ---------- Configuration ----------
+    // URL of YOUR backend that proxies requests to SailPlay.
+    // The SailPlay API token must NEVER live in the browser — keep it on the server.
+    // See server.js for a minimal Node.js reference implementation.
+    const BACKEND_ENDPOINT = "/api/sailplay/register";
+
+    // ---------- Helpers ----------
+    const phoneInput = document.getElementById("user_phone");
+
+    // Mask: +7 999 999-99-99
+    function formatPhone(value) {
+      let digits = value.replace(/\D/g, "");
+      // normalize leading 8 -> 7
+      if (digits.startsWith("8")) digits = "7" + digits.slice(1);
+      if (!digits.startsWith("7")) digits = "7" + digits;
+      digits = digits.slice(0, 11);
+
+      const p = digits.slice(1); // after country code
+      let out = "+7";
+      if (p.length > 0) out += " " + p.slice(0, 3);
+      if (p.length >= 4) out += " " + p.slice(3, 6);
+      if (p.length >= 7) out += "-" + p.slice(6, 8);
+      if (p.length >= 9) out += "-" + p.slice(8, 10);
+      return out;
+    }
+
+    phoneInput.addEventListener("input", (e) => {
+      const start = e.target.selectionStart;
+      const before = e.target.value;
+      e.target.value = formatPhone(e.target.value);
+      // crude caret restore — good enough for typing
+      if (start === before.length) {
+        e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+      }
+    });
+
+    phoneInput.addEventListener("focus", (e) => {
+      if (!e.target.value) e.target.value = "+7 ";
+    });
+
+    function digitsOnly(s) { return (s || "").replace(/\D/g, ""); }
+
+    function setInvalid(name, invalid) {
+      const f = document.querySelector(`.field[data-field="${name}"]`);
+      if (!f) return;
+      f.classList.toggle("invalid", invalid);
+      const inp = f.querySelector(".input");
+      if (inp) inp.classList.toggle("invalid", invalid);
+    }
+
+    function validate() {
+      let ok = true;
+
+      const first = document.getElementById("first_name").value.trim();
+      const last = document.getElementById("last_name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const phoneDigits = digitsOnly(phoneInput.value);
+
+      const firstOk = first.length >= 2;
+      setInvalid("first_name", !firstOk); ok = ok && firstOk;
+
+      const lastOk = last.length >= 2;
+      setInvalid("last_name", !lastOk); ok = ok && lastOk;
+
+      const phoneOk = phoneDigits.length === 11 && phoneDigits.startsWith("7");
+      setInvalid("user_phone", !phoneOk); ok = ok && phoneOk;
+
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+      setInvalid("email", !emailOk); ok = ok && emailOk;
+
+      const consent = document.getElementById("consent").checked;
+      ok = ok && consent;
+
+      return ok;
+    }
+
+    // Live-clear invalid state as the user fixes a field
+    ["first_name", "last_name", "user_phone", "email"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", () => {
+        setInvalid(id, false);
+        hideAlerts();
+      });
+    });
+
+    function showAlert(kind, text) {
+      hideAlerts();
+      const el = document.getElementById(kind === "success" ? "alertSuccess" : "alertError");
+      el.textContent = text;
+      el.classList.add("show");
+    }
+
+    function hideAlerts() {
+      document.getElementById("alertSuccess").classList.remove("show");
+      document.getElementById("alertError").classList.remove("show");
+    }
+
+    // ---------- Submit ----------
+    const form = document.getElementById("regForm");
+    const btn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!validate()) {
+        showAlert("error", "Проверьте правильность заполнения полей и согласие на обработку данных.");
+        return;
+      }
+
+      const payload = {
+        first_name: document.getElementById("first_name").value.trim(),
+        last_name: document.getElementById("last_name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        // SailPlay expects phone in international format WITHOUT '+' (e.g. 79998887766)
+        user_phone: digitsOnly(phoneInput.value),
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Отправляем...';
+
+      try {
+        const res = await fetch(BACKEND_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || data.status === "error") {
+          const msg =
+            data.message ||
+            (data.status_code === -5100 ? "Пользователь с такими данными уже зарегистрирован." :
+             data.status_code === -5102 ? "Этот номер телефона уже используется." :
+             data.status_code === -5103 ? "Этот email уже используется." :
+             "Не удалось зарегистрировать. Попробуйте позже.");
+          showAlert("error", msg);
+        } else {
+          showAlert("success", "Готово! Вы зарегистрированы в программе лояльности. На ваш телефон придёт SMS с подтверждением.");
+          form.reset();
+        }
+      } catch (err) {
+        showAlert("error", "Сетевая ошибка. Проверьте соединение и попробуйте снова.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Зарегистрироваться";
+      }
+    });
+  </script>
+</body>
+</html>

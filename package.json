@@ -1,0 +1,13 @@
+{
+  "name": "sailplay-register",
+  "version": "1.0.0",
+  "description": "Loyalty registration page + Node.js proxy to SailPlay API",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
