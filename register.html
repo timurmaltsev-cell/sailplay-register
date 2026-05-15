@@ -197,6 +197,68 @@
       margin-top: 16px;
     }
 
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0 18px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .offline {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fbfcfe;
+    }
+    .offline-icon {
+      flex: 0 0 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .offline-body { flex: 1; min-width: 0; }
+    .offline-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .offline-sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+    .offline-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .offline-link:hover { text-decoration: underline; }
+
     /* spinner */
     .spinner {
       display: inline-block;
@@ -258,6 +320,22 @@
         <div class="alert success" id="alertSuccess"></div>
         <div class="alert error" id="alertError"></div>
       </form>
+
+      <div class="divider">или</div>
+
+      <div class="offline">
+        <div class="offline-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div class="offline-body">
+          <div class="offline-title">Заполнить на бумаге</div>
+          <div class="offline-sub">Скачайте анкету, распечатайте, подпишите и принесите в магазин — это нужно для согласия на обработку персональных данных.</div>
+          <a class="offline-link" href="/anketa.docx" download="Анкета карта лояльности.docx">
+            Скачать анкету (.docx)
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </a>
+        </div>
+      </div>
     </div>
 
     <div class="footer">Powered by SailPlay</div>
@@ -400,7 +478,7 @@
              "Не удалось зарегистрировать. Попробуйте позже.");
           showAlert("error", msg);
         } else {
-          showAlert("success", "Готово! Вы зарегистрированы в программе лояльности. На ваш телефон придёт SMS с подтверждением.");
+          showAlert("success", "Готово! Вы зарегистрированы в программе лояльности.");
           form.reset();
         }
       } catch (err) {
