@@ -231,8 +231,35 @@ async function handleRegister(req, res) {
   }
 }
 
-// --- anketa pre-fill ---
-const ANKETA_TEMPLATE = path.join(__dirname, "anketa-template.docx");
+// --- anketa download ---
+// File served as the printable paper form. Configurable per-deployment via env
+// so multiple Timeweb apps (different orgs) can share the same codebase but
+// ship different docx files.
+const ANKETA_FILENAME = process.env.ANKETA_TEMPLATE || "anketa.docx";
+const ANKETA_TEMPLATE = path.join(__dirname, ANKETA_FILENAME);
+
+// Friendly filename the browser sees when saving.
+const ANKETA_DOWNLOAD_NAME = "Анкета карта лояльности.docx";
+
+function serveAnketa(req, res) {
+  fs.readFile(ANKETA_TEMPLATE, (err, data) => {
+    if (err) {
+      console.error(`[anketa] file not found: ${ANKETA_FILENAME}`, err);
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Anketa file not found on server.");
+      return;
+    }
+    const rfc5987 = encodeURIComponent(ANKETA_DOWNLOAD_NAME);
+    res.writeHead(200, {
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "Content-Disposition": `attachment; filename="anketa.docx"; filename*=UTF-8''${rfc5987}`,
+      "Content-Length": data.length,
+      "Cache-Control": "no-store",
+    });
+    res.end(data);
+  });
+}
 
 // Strip control chars but keep cyrillic / latin / punctuation
 function xmlSafe(s) {
@@ -319,6 +346,11 @@ const server = http.createServer((req, res) => {
   }
   if (req.method === "POST" && req.url === "/api/anketa") {
     return handleAnketa(req, res);
+  }
+  // Public download URL for the anketa — points to the file configured via
+  // the ANKETA_TEMPLATE env var. Single stable URL per app, regardless of org.
+  if (req.method === "GET" && req.url === "/anketa.docx") {
+    return serveAnketa(req, res);
   }
   if (req.method === "GET") return serveStatic(req, res);
   res.writeHead(405); res.end("Method Not Allowed");

@@ -330,11 +330,10 @@
         <div class="offline-body">
           <div class="offline-title">Заполнить на бумаге</div>
           <div class="offline-sub">Скачайте анкету, распечатайте, подпишите и принесите в магазин — это нужно для согласия на обработку персональных данных.</div>
-          <a class="offline-link" href="#" id="anketaLink">
+          <a class="offline-link" href="/anketa.docx" download="Анкета карта лояльности.docx">
             Скачать анкету (.docx)
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </a>
-          <div class="offline-hint" id="anketaHint" style="font-size: 11px; color: var(--muted); margin-top: 6px;">Поля, которые уже заполнены выше, подставятся в анкету автоматически.</div>
         </div>
       </div>
     </div>
@@ -490,52 +489,6 @@
       }
     });
 
-    // ---------- Anketa download (server fills in known fields, returns docx) ----------
-    const anketaLink = document.getElementById("anketaLink");
-    const anketaHint = document.getElementById("anketaHint");
-
-    anketaLink.addEventListener("click", async (e) => {
-      e.preventDefault();
-      const origText = anketaLink.firstChild.nodeValue;
-      anketaLink.style.pointerEvents = "none";
-      anketaLink.firstChild.nodeValue = "Готовим анкету... ";
-
-      try {
-        const payload = {
-          first_name: document.getElementById("first_name").value.trim(),
-          last_name: document.getElementById("last_name").value.trim(),
-          email: document.getElementById("email").value.trim(),
-          user_phone: digitsOnly(phoneInput.value),
-        };
-
-        const res = await fetch("/api/anketa", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) throw new Error("Server returned " + res.status);
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "Анкета карта лояльности.docx";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-
-        anketaHint.textContent = "Анкета скачана. Распечатайте, подпишите и принесите в магазин.";
-        anketaHint.style.color = "var(--success)";
-      } catch (err) {
-        anketaHint.textContent = "Не удалось скачать анкету. Попробуйте ещё раз.";
-        anketaHint.style.color = "var(--danger)";
-      } finally {
-        anketaLink.firstChild.nodeValue = origText;
-        anketaLink.style.pointerEvents = "";
-      }
-    });
   </script>
 </body>
 </html>
