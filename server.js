@@ -16,6 +16,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const JSZip = require("jszip");
 
 const PORT = Number(process.env.PORT) || 3000;
 const PIN_CODE = process.env.SAILPLAY_PIN_CODE;
@@ -230,9 +231,94 @@ async function handleRegister(req, res) {
   }
 }
 
+// --- anketa pre-fill ---
+const ANKETA_TEMPLATE = path.join(__dirname, "anketa-template.docx");
+
+// Strip control chars but keep cyrillic / latin / punctuation
+function xmlSafe(s) {
+  return String(s || "")
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+// Convert raw phone digits into a human-readable form for the printed form (e.g. "999 888-77-66")
+function phoneForAnketa(digits11) {
+  if (!digits11 || digits11.length !== 11) return "";
+  // anketa already prints "+7" prefix as static text, so we only show the rest
+  const p = digits11.slice(1);
+  return `${p.slice(0,3)} ${p.slice(3,6)}-${p.slice(6,8)}-${p.slice(8,10)}`;
+}
+
+async function handleAnketa(req, res) {
+  let body;
+  try {
+    const raw = await readBody(req);
+    body = JSON.parse(raw || "{}");
+  } catch {
+    return sendJSON(res, 400, { status: "error", message: "Bad JSON payload." });
+  }
+
+  // All fields optional — user might download partial anketa before finishing form
+  const first_name = (body.first_name || "").trim();
+  const last_name = (body.last_name || "").trim();
+  const email = (body.email || "").trim();
+  const phone_digits = normalizePhone(body.user_phone) || "";
+  const phone_pretty = phoneForAnketa(phone_digits);
+
+  let template;
+  try {
+    template = await fs.promises.readFile(ANKETA_TEMPLATE);
+  } catch (e) {
+    console.error("[anketa] template missing:", e);
+    return sendJSON(res, 500, { status: "error", message: "Template not found on server." });
+  }
+
+  try {
+    const zip = await JSZip.loadAsync(template);
+    const docFile = zip.file("word/document.xml");
+    if (!docFile) {
+      return sendJSON(res, 500, { status: "error", message: "Bad template (no document.xml)." });
+    }
+    let xml = await docFile.async("string");
+    const subs = {
+      "{{LAST_NAME}}": xmlSafe(last_name),
+      "{{FIRST_NAME}}": xmlSafe(first_name),
+      "{{PHONE}}": xmlSafe(phone_pretty),
+      "{{EMAIL}}": xmlSafe(email),
+    };
+    for (const [k, v] of Object.entries(subs)) {
+      xml = xml.split(k).join(v);
+    }
+    zip.file("word/document.xml", xml);
+
+    const out = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
+
+    // Friendly filename — RFC 5987 for Cyrillic
+    const friendly = "Анкета карта лояльности.docx";
+    const rfc5987 = encodeURIComponent(friendly);
+    res.writeHead(200, {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "Content-Disposition": `attachment; filename="anketa.docx"; filename*=UTF-8''${rfc5987}`,
+      "Content-Length": out.length,
+      "Cache-Control": "no-store",
+    });
+    res.end(out);
+  } catch (err) {
+    console.error("[anketa] fill failed:", err);
+    return sendJSON(res, 500, { status: "error", message: "Не удалось подготовить анкету." });
+  }
+}
+
 const server = http.createServer((req, res) => {
   if (req.method === "POST" && req.url === "/api/sailplay/register") {
     return handleRegister(req, res);
+  }
+  if (req.method === "POST" && req.url === "/api/anketa") {
+    return handleAnketa(req, res);
   }
   if (req.method === "GET") return serveStatic(req, res);
   res.writeHead(405); res.end("Method Not Allowed");
