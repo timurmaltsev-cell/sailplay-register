@@ -305,9 +305,9 @@
         </div>
 
         <div class="field" data-field="email">
-          <label for="email">Email</label>
-          <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required>
-          <div class="err">Введите корректный email</div>
+          <label for="email">Email <span style="color: var(--muted); font-weight: 400;">(необязательно)</span></label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com">
+          <div class="err">Если указываете email — введите его корректно</div>
         </div>
 
         <label class="check">
@@ -409,7 +409,8 @@
       const phoneOk = phoneDigits.length === 11 && phoneDigits.startsWith("7");
       setInvalid("user_phone", !phoneOk); ok = ok && phoneOk;
 
-      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+      // Email — optional. Validate only if user typed something.
+      const emailOk = !email || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
       setInvalid("email", !emailOk); ok = ok && emailOk;
 
       const consent = document.getElementById("consent").checked;

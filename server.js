@@ -159,14 +159,17 @@ function isTokenError(data, httpStatus) {
 }
 
 async function callUsersAdd(payload, token) {
-  const body = new URLSearchParams({
+  const params = {
     token,
     store_department_id: STORE_DEPARTMENT_ID,
     user_phone: payload.user_phone,
-    email: payload.email,
     first_name: payload.first_name,
     last_name: payload.last_name,
-  });
+  };
+  // Only send email if it was actually provided — SailPlay treats empty email
+  // as an attempt to set an empty identifier, which can produce odd errors.
+  if (payload.email) params.email = payload.email;
+  const body = new URLSearchParams(params);
   const r = await fetch(SAILPLAY_USERS_ADD_URL, {
     method: "POST",
     headers: {
@@ -203,7 +206,8 @@ async function handleRegister(req, res) {
 
   if (first_name.length < 2) return sendJSON(res, 400, { status: "error", message: "Некорректное имя." });
   if (last_name.length < 2) return sendJSON(res, 400, { status: "error", message: "Некорректная фамилия." });
-  if (!isValidEmail(email)) return sendJSON(res, 400, { status: "error", message: "Некорректный email." });
+  // Email is optional — only validate if it's actually provided.
+  if (email && !isValidEmail(email)) return sendJSON(res, 400, { status: "error", message: "Некорректный email." });
   if (!user_phone) return sendJSON(res, 400, { status: "error", message: "Некорректный телефон." });
 
   const payload = { first_name, last_name, email, user_phone };
